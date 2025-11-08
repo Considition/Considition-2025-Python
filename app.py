@@ -20,7 +20,12 @@ def main():
     map_name = "INSERT MAP NAME HERE"
 
     client = ConsiditionClient(base_url, api_key)
-    map_obj = client.get_map(map_name)
+
+    try:
+        map_obj = client.get_map(map_name)
+    except Exception as e:
+        print(f"Failed to fetch map: {e}")
+        sys.exit(1)
 
     if not map_obj:
         print("Failed to fetch map!")
@@ -39,9 +44,13 @@ def main():
 
     for i in range(total_ticks):
         while True:
-            print(f"Playing tick: {i} with input: {input_payload}")
+            print(f"Playing tick: {i}")
             start = time.perf_counter()
-            game_response = client.post_game(input_payload)
+            try:
+                game_response = client.post_game(input_payload)
+            except Exception as e:
+                print(f"Error posting game data: {e}")
+                sys.exit(1)
             elapsed_ms = (time.perf_counter() - start) * 1000
             print(f"Tick {i} took: {elapsed_ms:.2f}ms")
 
@@ -50,11 +59,7 @@ def main():
                 sys.exit(1)
 
             # Sum the scores directly (assuming they are numbers)
-            final_score = (
-                game_response.get("customerCompletionScore", 0)
-                + game_response.get("kwhRevenue", 0)
-                + game_response.get("score", 0)
-            )
+            final_score = game_response.get("score", 0)
 
             if should_move_on_to_next_tick(game_response):
                 good_ticks.append(current_tick)
